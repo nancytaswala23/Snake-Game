@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Tournament 2025 - Analytics Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #ffd700, #ff6b6b, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .year-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff6b6b, #ffd700);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .game-arena {
+            background: #003300;
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 30px auto;
+            max-width: 900px;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .arena-grid {
+            display: grid;
+            grid-template-columns: repeat(40, 1fr);
+            grid-template-rows: repeat(30, 1fr);
+            gap: 1px;
+            background: #002200;
+            padding: 10px;
+            border-radius: 10px;
+            height: 400px;
+        }
+
+        .snake-segment {
+            border-radius: 2px;
+            animation: pulse 2s infinite;
+        }
+
+        .snake-yellow {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            grid-column: span 3;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .snake-red {
+            background: linear-gradient(135deg, #ff4444, #ff6b6b);
+            grid-column: span 3;
+            box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+        }
+
+        .apple {
+            background: radial-gradient(circle, #ff0000, #cc0000);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.9; }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.2);
+        }
+
+        .stat-card h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #aaa;
+            font-size: 0.9em;
+        }
+
+        .strategy-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .strategy-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .strategy-card.offensive {
+            border-left-color: #ff6b6b;
+        }
+
+        .strategy-card.defensive {
+            border-left-color: #4facfe;
+        }
+
+        .strategy-card.tactical {
+            border-left-color: #ffd700;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .chart-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .chart-title {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .tournament-bracket {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        .bracket-title {
+            text-align: center;
+            color: #ffd700;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .match-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-yellow {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .team-red {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .score {
+            font-size: 1.3em;
+            margin: 0 20px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .control-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(118, 75, 162, 0.4);
+        }
+
+        .game-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .info-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .info-panel h4 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pulse-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: #00ff00;
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.5); }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐍 Snake Tournament 2025 🐍</h1>
+        <p>Program Structures & Algorithms - Competitive AI Battle Arena</p>
+        <div class="year-badge">Year of the Snake</div>
+    </div>
+
+    <div class="dashboard">
+        <div class="game-arena">
+            <h2 style="text-align: center; margin-bottom: 20px; color: #ffd700;">Live Game Simulation</h2>
+            <div class="arena-grid" id="gameGrid">
+                <!-- Simulated snake positions -->
+                <div class="snake-yellow" style="grid-row: 10; grid-column: 5;"></div>
+                <div class="snake-yellow" style="grid-row: 10; grid-column: 6;"></div>
+                <div class="snake-yellow" style="grid-row: 10; grid-column: 7;"></div>
+                <div class="snake-red" style="grid-row: 20; grid-column: 30;"></div>
+                <div class="snake-red" style="grid-row: 20; grid-column: 31;"></div>
+                <div class="snake-red" style="grid-row: 20; grid-column: 32;"></div>
+                <div class="apple" style="grid-row: 15; grid-column: 20;"></div>
+            </div>
+            
+            <div class="game-info">
+                <div class="info-panel">
+                    <h4>🟡 Yellow Snake</h4>
+                    <div class="info-item">
+                        <span>Length:</span>
+                        <span id="yellowLength">5</span>
+                    </div>
+                    <div class="info-item">
+                        <span>Immunity:</span>
+                        <span id="yellowImmunity">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span>Server Status:</span>
+                        <span>Active<span class="pulse-dot"></span></span>
+                    </div>
+                </div>
+                
+                <div class="info-panel">
+                    <h4>🔴 Red Snake</h4>
+                    <div class="info-item">
+                        <span>Length:</span>
+                        <span id="redLength">5</span>
+                    </div>
+                    <div class="info-item">
+                        <span>Immunity:</span>
+                        <span id="redImmunity">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span>Server Status:</span>
+                        <span>Active<span class="pulse-dot"></span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="startSimulation()">▶️ Start Game</button>
+            <button class="control-btn" onclick="pauseSimulation()">⏸️ Pause</button>
+            <button class="control-btn" onclick="resetSimulation()">🔄 Reset</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>⚡ Game Heartbeats</h3>
+                <div class="stat-value" id="heartbeats">0</div>
+                <div class="stat-label">Total movements</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>🎲 Immunity Period</h3>
+                <div class="stat-value" id="immunityPeriod">3</div>
+                <div class="stat-label">Heartbeats (1-6)</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>🔄 Query Period</h3>
+                <div class="stat-value" id="queryPeriod">2</div>
+                <div class="stat-label">Heartbeats (1-6)</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>🍎 Apples Eaten</h3>
+                <div class="stat-value" id="applesEaten">0</div>
+                <div class="stat-label">Total consumed</div>
+            </div>
+        </div>
+
+        <div class="strategy-section">
+            <h2 style="text-align: center; color: #ffd700; margin-bottom: 20px;">Strategic Elements</h2>
+            <div class="strategy-grid">
+                <div class="strategy-card offensive">
+                    <h3>🗡️ Offensive Tactics</h3>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Trap formation using body positioning</li>
+                        <li>Apple denial strategies</li>
+                        <li>Aggressive pursuit during immunity</li>
+                        <li>Corner pressure tactics</li>
+                    </ul>
+                </div>
+                
+                <div class="strategy-card defensive">
+                    <h3>🛡️ Defensive Tactics</h3>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Wall hugging for protection</li>
+                        <li>Escape route planning</li>
+                        <li>Safe apple approach paths</li>
+                        <li>Collision avoidance algorithms</li>
+                    </ul>
+                </div>
+                
+                <div class="strategy-card tactical">
+                    <h3>🎯 Tactical Decisions</h3>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Risk/reward apple assessment</li>
+                        <li>Turn timing optimization</li>
+                        <li>Information advantage usage (Red)</li>
+                        <li>Predictive movement patterns</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-card">
+                <h3 class="chart-title">📊 Win Rate Distribution</h3>
+                <canvas id="winRateChart"></canvas>
+            </div>
+            
+            <div class="chart-card">
+                <h3 class="chart-title">📈 Game Length Analysis</h3>
+                <canvas id="gameLengthChart"></canvas>
+            </div>
+        </div>
+
+        <div class="tournament-bracket">
+            <h2 class="bracket-title">🏆 Tournament Bracket</h2>
+            
+            <div class="match-card">
+                <span class="team-yellow">Team Alpha (Yellow)</span>
+                <span class="score">2 - 1</span>
+                <span class="team-red">Team Beta (Red)</span>
+            </div>
+            
+            <div class="match-card">
+                <span class="team-red">Team Gamma (Red)</span>
+                <span class="score">3 - 0</span>
+                <span class="team-yellow">Team Delta (Yellow)</span>
+            </div>
+            
+            <div class="match-card">
+                <span class="team-yellow">Team Epsilon (Yellow)</span>
+                <span class="score">1 - 2</span>
+                <span class="team-red">Team Zeta (Red)</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Charts
+        const winRateCtx = document.getElementById('winRateChart').getContext('2d');
+        const winRateChart = new Chart(winRateCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Yellow Snake Wins', 'Red Snake Wins', 'Timeouts'],
+                datasets: [{
+                    data: [45, 48, 7],
+                    backgroundColor: [
+                        'rgba(255, 215, 0, 0.8)',
+                        'rgba(255, 107, 107, 0.8)',
+                        'rgba(128, 128, 128, 0.8)'
+                    ],
+                    borderColor: [
+                        '#ffd700',
+                        '#ff6b6b',
+                        '#808080'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: 'white'
+                        }
+                    }
+                }
+            }
+        });
+
+        const gameLengthCtx = document.getElementById('gameLengthChart').getContext('2d');
+        const gameLengthChart = new Chart(gameLengthCtx, {
+            type: 'bar',
+            data: {
+                labels: ['0-50', '51-100', '101-150', '151-200', '200+'],
+                datasets: [{
+                    label: 'Game Heartbeats',
+                    data: [15, 28, 35, 18, 4],
+                    backgroundColor: 'rgba(255, 215, 0, 0.6)',
+                    borderColor: '#ffd700',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: 'white'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: 'white'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'white'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Simulation Control Functions
+        let gameInterval;
+        let heartbeats = 0;
+        let yellowLength = 5;
+        let redLength = 5;
+        let applesEaten = 0;
+
+        function startSimulation() {
+            if (gameInterval) clearInterval(gameInterval);
+            
+            gameInterval = setInterval(() => {
+                heartbeats++;
+                document.getElementById('heartbeats').textContent = heartbeats;
+                
+                // Simulate apple eating
+                if (Math.random() < 0.05) {
+                    applesEaten++;
+                    document.getElementById('applesEaten').textContent = applesEaten;
+                    
+                    if (Math.random() < 0.5) {
+                        yellowLength++;
+                        document.getElementById('yellowLength').textContent = yellowLength;
+                        document.getElementById('yellowImmunity').textContent = 
+                            document.getElementById('immunityPeriod').textContent;
+                    } else {
+                        redLength++;
+                        document.getElementById('redLength').textContent = redLength;
+                        document.getElementById('redImmunity').textContent = 
+                            document.getElementById('immunityPeriod').textContent;
+                    }
+                }
+                
+                // Decrease immunity
+                let yellowImm = parseInt(document.getElementById('yellowImmunity').textContent);
+                let redImm = parseInt(document.getElementById('redImmunity').textContent);
+                if (yellowImm > 0) document.getElementById('yellowImmunity').textContent = yellowImm - 1;
+                if (redImm > 0) document.getElementById('redImmunity').textContent = redImm - 1;
+                
+            }, 100);
+        }
+
+        function pauseSimulation() {
+            if (gameInterval) {
+                clearInterval(gameInterval);
+                gameInterval = null;
+            }
+        }
+
+        function resetSimulation() {
+            pauseSimulation();
+            heartbeats = 0;
+            yellowLength = 5;
+            redLength = 5;
+            applesEaten = 0;
+            
+            document.getElementById('heartbeats').textContent = '0';
+            document.getElementById('yellowLength').textContent = '5';
+            document.getElementById('redLength').textContent = '5';
+            document.getElementById('yellowImmunity').textContent = '0';
+            document.getElementById('redImmunity').textContent = '0';
+            document.getElementById('applesEaten').textContent = '0';
+            
+            // Randomize game parameters
+            document.getElementById('immunityPeriod').textContent = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('queryPeriod').textContent = Math.floor(Math.random() * 6) + 1;
+        }
+
+        // Initialize random parameters on load
+        window.addEventListener('load', () => {
+            resetSimulation();
+        });
+    </script>
+</body>
+</html>
