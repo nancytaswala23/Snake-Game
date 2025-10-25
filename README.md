@@ -1,4 +1,4 @@
-# 🐍 Snake Tournament 2025
+# 🐍 Snake Game
 
 **An AI-powered competitive snake battle system with real-time TCP socket communication**
 
@@ -219,5 +219,3 @@ python test_strategy.py --snake1 aggressive --snake2 defensive
 - [TCP Socket Optimization for Gaming](link)
 
 
-�🏆</b>
-</p>
