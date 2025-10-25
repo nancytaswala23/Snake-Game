@@ -2,7 +2,7 @@
 
 **An AI-powered competitive snake battle system with real-time TCP socket communication**
 
-**Snake Game Simulator **:https://github.com/nancytaswala23/Snake-Game/blob/main/snake-tournament-viz.html
+**Snake Game Simulator :https://github.com/nancytaswala23/Snake-Game/blob/main/snake-tournament-viz.html**
 
 [**Demo**](#demo) • [**Installation**](#installation) • [**Usage**](#usage) • [**Architecture**](#architecture) • [**Tournament**](#tournament) • [**Strategy**](#strategy)
 
